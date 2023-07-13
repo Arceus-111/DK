@@ -1,0 +1,172 @@
+#include <iostream>
+#include <vector>
+
+using namespace std;
+
+// Function to display the Tic Tac Toe board
+void displayBoard(const vector<vector<char>>& board) {
+    cout<<endl;
+    for (const auto& row : board) {
+        for (char cell : row) {
+            cout << cell << " ";
+        }
+        cout << endl;
+    }
+    cout<<endl;
+}
+bool ok;
+// Function to check if the game is over
+bool isGameOver(const vector<vector<char>>& board, char currentPlayer) {
+    // Check rows and columns for a win
+    for (int i = 0; i < 3; i++) {
+        if (board[i][0] == currentPlayer && board[i][1] == currentPlayer && board[i][2] == currentPlayer)
+            return true;
+        if (board[0][i] == currentPlayer && board[1][i] == currentPlayer && board[2][i] == currentPlayer)
+            return true;
+    }
+
+    // Check diagonals for a win
+    if (board[0][0] == currentPlayer && board[1][1] == currentPlayer && board[2][2] == currentPlayer)
+        return true;
+    if (board[0][2] == currentPlayer && board[1][1] == currentPlayer && board[2][0] == currentPlayer)
+        return true;
+
+    // Check for a draw
+    bool isDraw = true;
+    for (const auto& row : board) {
+        for (char cell : row) {
+            if (cell == ' ') {
+                isDraw = false;
+                break;
+            }
+        }
+        if (!isDraw)
+            break;
+    }
+    return ok=isDraw;
+}
+
+// Function to make a human move
+void makeHumanMove(vector<vector<char>>& board, char currentPlayer) {
+    int row, col;
+    cout << "Player " << currentPlayer << ", enter your move (row and column): ";
+    cin >> row >> col;
+
+    // Check if the move is valid
+    while (row < 0 || row >= 3 || col < 0 || col >= 3 || board[row][col] != ' ') {
+        cout << "Invalid move. Player " << currentPlayer << ", enter your move (row and column): ";
+        cin >> row >> col;
+    }
+
+    board[row][col] = currentPlayer;
+}
+
+// Function to make an AI move using minimax algorithm
+int minimax(vector<vector<char>>& board, int depth, bool isMaximizingPlayer, char aiPlayer, char humanPlayer) {
+    // Check terminal states
+    if (isGameOver(board, aiPlayer))
+        return 10 - depth;
+    else if (isGameOver(board, humanPlayer))
+        return depth - 10;
+    else if (isGameOver(board, ' '))
+        return 0;
+
+    if (isMaximizingPlayer) {
+        int bestScore = -1000;
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                if (board[i][j] == ' ') {
+                    board[i][j] = aiPlayer;
+                    bestScore = max(bestScore, minimax(board, depth + 1, false, aiPlayer, humanPlayer));
+                    board[i][j] = ' ';
+                }
+            }
+        }
+        return bestScore;
+    } else {
+        int bestScore = 1000;
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                if (board[i][j] == ' ') {
+                    board[i][j] = humanPlayer;
+                    bestScore = min(bestScore, minimax(board, depth + 1, true, aiPlayer, humanPlayer));
+                    board[i][j] = ' ';
+                }
+            }
+        }
+        return bestScore;
+    }
+}
+
+// Function to make an AI move
+void makeAIMove(vector<vector<char>>& board, char aiPlayer, char humanPlayer) {
+    int bestScore = -1000;
+    int bestRow, bestCol;
+
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            if (board[i][j] == ' ') {
+                board[i][j] = aiPlayer;
+                int moveScore = minimax(board, 0, false, aiPlayer, humanPlayer);
+                board[i][j] = ' ';
+                if (moveScore > bestScore) {
+                    bestScore = moveScore;
+                    bestRow = i;
+                    bestCol = j;
+                }
+            }
+        }
+    }
+
+    board[bestRow][bestCol] = aiPlayer;
+}
+
+int main() {
+    vector<vector<char>> board(3, vector<char>(3, ' '));
+    char humanPlayer, aiPlayer;
+    char currentPlayer;
+    bool gameOver = false;
+
+    cout << "Tic Tac Toe\n";
+    cout << "Select 'X' or 'O' as your marker: ";
+    cin >> humanPlayer;
+
+    ok =false;
+
+    if (humanPlayer == 'X')
+        aiPlayer = 'O';
+    else
+        aiPlayer = 'X';
+
+    cout << "You are player " << humanPlayer << endl;
+
+    // Randomly decide who plays first
+    currentPlayer = (rand() % 2 == 0) ? humanPlayer : aiPlayer;
+
+    displayBoard(board);
+
+    while (!gameOver) {
+        if (currentPlayer == humanPlayer)
+            makeHumanMove(board, currentPlayer);
+        else
+            makeAIMove(board, aiPlayer, humanPlayer);
+
+        displayBoard(board);
+        gameOver = isGameOver(board, currentPlayer);
+
+        if (!gameOver) {
+            currentPlayer = (currentPlayer == humanPlayer) ? aiPlayer : humanPlayer;
+        }
+    }
+    if(ok){
+        cout<<"It's a draw !"<<endl;
+    }
+    else if (currentPlayer == humanPlayer)
+        cout << "You win!" << endl;
+    else if (currentPlayer == aiPlayer)
+        cout << "AI wins!" << endl;
+    // else
+    //     cout << "It's a draw!" << endl;
+
+    return 0;
+}
