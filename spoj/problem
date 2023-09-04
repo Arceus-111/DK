@@ -1,0 +1,75 @@
+#include<bits/stdc++.h>
+using namespace std;
+typedef int ll;
+void solve(ll tt)
+{
+    //your code
+    cout<<"Case "<<tt<<":"<<endl;
+    ll n,m;
+    cin>>n>>m;
+    vector<ll> a(n);
+    for(int i=0;i<n;i++) cin>>a[i];
+    vector<pair<ll,pair<ll,ll>>>q(m);
+    for(int i=0;i<m;i++){
+        cin>>q[i].first>>q[i].second.first;
+        q[i].second.second=i;
+    }
+    auto cmp=[&](pair<ll,pair<ll,ll>> p1,pair<ll,pair<ll,ll>> p2){
+        return p1.second.first<p2.second.first;
+    };
+    sort(q.begin(),q.end(),cmp);
+    vector<ll> bit(n+1);
+    auto add=[&](ll i,ll val){
+        while(i<=n){
+            bit[i]+=val;
+            i += i & -i;
+        }
+    };
+    auto sum=[&](ll i){
+        ll ans=0;
+        while(i>0){
+            ans+=bit[i];
+            i -= i & -i;
+        }
+        return ans;
+    };
+    auto query=[&](ll l,ll r){
+        return sum(r)-sum(l-1);  
+    };
+    ll j=0;
+    map<ll,ll>poslast;
+    vector<ll> ans(m);
+    for(int i=0;i<n;i++){
+        if(poslast.find(a[i])==poslast.end()){
+            poslast[a[i]]=i;
+        }
+        else{
+            add(poslast[a[i]]+1,-1);
+            poslast[a[i]]=i;
+        }
+        add(i+1,1);
+        for(;j<m;j++){
+            if(q[j].second.first!=i+1) break;
+            ll idx=q[j].second.second,l=q[j].first,r=q[j].second.first;
+            ans[idx]=query(l,r);
+
+        }
+    }
+    for(auto x:ans) cout<<x<<"\n";
+    
+
+}
+int main()
+{
+    ios::sync_with_stdio(false);
+    cin.tie(0);
+    int t;
+    cin>>t;
+    ll c=1;
+    while(t--)
+    {
+    solve(c);
+    c++;
+    }
+    return 0;
+}
